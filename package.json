@@ -43,9 +43,8 @@
     "test:coverage": "vitest run --coverage --coverage.reporter=text",
     "prepare": "npm run build",
     "preversion": "npm ci && npm run build:clean && npm run test && npm run lint && npm run typecheck",
-    "alpha": "npm version prerelease --preid alpha && npm publish --tag alpha && git push --follow-tags",
-    "release": "npm version patch && npm publish && git push --follow-tags",
-    "version": "(npm whoami || npm login) && vim -c 'normal o' -c 'normal o## '$npm_package_version CHANGELOG.md && prettier -w CHANGELOG.md && git add CHANGELOG.md"
+    "alpha": "npm version prerelease --preid alpha && git push --follow-tags",
+    "release": "npm version patch && git push --follow-tags"
   },
   "files": [
     "dist",

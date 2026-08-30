@@ -66,6 +66,12 @@ export default [
   },
   // React app code - Browser environment
   {
+    files: ["scripts/**/*.{js,mjs}"],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
     files: ["src/react/**/*.{ts,tsx}", "example/src/**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,

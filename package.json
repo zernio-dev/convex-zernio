@@ -36,6 +36,7 @@
     "build:clean": "rm -rf dist *.tsbuildinfo && npm run build",
     "typecheck": "tsc --noEmit && tsc -p example && tsc -p example/convex",
     "lint": "eslint .",
+    "check:component-api": "node scripts/check-component-api.mjs",
     "test": "vitest run --typecheck",
     "test:watch": "vitest --typecheck --clearScreen false",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",

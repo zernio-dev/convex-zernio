@@ -47,6 +47,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check generated ComponentApi
+        run: npm run check:component-api
+
       - name: Test
         run: npm test
 

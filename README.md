@@ -1,6 +1,7 @@
 # Convex Zernio Component
 
 [![npm version](https://badge.fury.io/js/@zernio%2Fconvex.svg)](https://badge.fury.io/js/@zernio%2Fconvex)
+[![Convex Component](https://www.convex.dev/components/badge/zernio/convex)](https://www.convex.dev/components/zernio/convex)
 
 <!-- START: Include on https://convex.dev/components -->
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Add the Convex components directory badge to the README.
+
 ## 0.1.1
 
 No functional changes. Verifies the release path now that publishing runs

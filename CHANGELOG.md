@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+No functional changes. Verifies the release path now that publishing runs
+through npm trusted publishing (OIDC) with no token in CI.
+
 ## 0.1.0
 
 Initial release.

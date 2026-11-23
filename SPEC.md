@@ -200,6 +200,8 @@ posts: defineTable({
   content: v.string(),
   title: v.optional(v.string()),
   mediaUrls: v.optional(v.array(v.string())),
+  mediaItems: v.optional(v.array(vMediaItem)),
+  platformSpecificData: v.optional(vPlatformSpecificData),
   scheduledFor: v.optional(v.number()),
   timezone: v.optional(v.string()),
   accountIds: v.array(v.string()),
@@ -380,6 +382,8 @@ args: {
   content: v.string(),
   title: v.optional(v.string()),
   mediaUrls: v.optional(v.array(v.string())),
+  mediaItems: v.optional(v.array(vMediaItem)),
+  platformSpecificData: v.optional(vPlatformSpecificData),
   scheduledFor: v.optional(v.number()),
   timezone: v.optional(v.string()),
   idempotencyKey: v.optional(v.string()),
@@ -935,6 +939,8 @@ export class Zernio {
       scheduledFor?: number;
       title?: string;
       mediaUrls?: string[];
+      mediaItems?: MediaItem[];
+      platformSpecificData?: PlatformSpecificData;
       timezone?: string;
       idempotencyKey?: string;
       userId?: string;
@@ -980,7 +986,7 @@ export class Zernio {
     listPosts:    RegisteredQuery<"public", { status?: ZernioPostStatus; limit?: number }, ZernioPost[]>;
     getPost:      RegisteredQuery<"public", { postId: string }, ZernioPost | null>;
     status:       RegisteredQuery<"public", { postId: string }, ZernioPostStatusSummary | null>;
-    schedulePost: RegisteredMutation<"public", { accountIds: string[]; content: string; scheduledFor?: number; title?: string; mediaUrls?: string[]; timezone?: string; idempotencyKey?: string }, { postId: string; status: ZernioPostStatus; duplicate: boolean }>;
+    schedulePost: RegisteredMutation<"public", { accountIds: string[]; content: string; scheduledFor?: number; title?: string; mediaUrls?: string[]; mediaItems?: MediaItem[]; platformSpecificData?: PlatformSpecificData; timezone?: string; idempotencyKey?: string }, { postId: string; status: ZernioPostStatus; duplicate: boolean }>;
     cancelPost:   RegisteredAction<"public", { postId: string }, { postId: string; status: ZernioPostStatus; cancelled: boolean }>;
     connectAccountUrl: RegisteredAction<"public", { platform: string; redirectUrl?: string }, { authUrl: string; state: string; profileId: string }>;
     syncAccounts: RegisteredAction<"public", Record<string, never>, ZernioAccount[]>;
@@ -1265,6 +1271,9 @@ derives it synchronously as `"zc_" + fnv1a64hex(parts)` where `parts` is
 `${zernioProfileId}|${[...accountIds].sort().join(",")}|${content}|${title ?? ""}|${(mediaUrls ?? []).join(",")}|${scheduledFor ?? "now"}|${testMode}`
 ```
 
+followed by `|${JSON.stringify(mediaItems)}` and `|${JSON.stringify(platformSpecificData)}` only
+when those are set, so keys derived for posts without them do not change.
+
 FNV-1a 64-bit is used rather than SHA-256 because it is synchronous and a Convex mutation cannot
 await `crypto.subtle`. Collision risk is negligible at this cardinality, and the failure mode
 (a second identical post in the same profile being treated as a duplicate) matches Zernio's own
@@ -1291,8 +1300,8 @@ unqualified: that key is the caller's own contract.
    {
      "content": "...",
      "title": "...",                       // omitted when absent
-     "mediaItems": [{ "url": "..." }],     // omitted when mediaUrls is empty
-     "platforms": [{ "platform": "...", "accountId": "..." }],
+     "mediaItems": [{ "url": "..." }],     // mediaItems as given, else one { url } per mediaUrls entry; omitted when both are empty
+     "platforms": [{ "platform": "...", "accountId": "...", "platformSpecificData": {} }], // platformSpecificData[platform], omitted when absent
      "timezone": "UTC",                    // options-free, from args, default omitted
      // exactly one scheduling directive, see below
    }

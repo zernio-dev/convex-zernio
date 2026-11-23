@@ -22,6 +22,10 @@ import {
   isRecord,
   readString,
   vAccountEventArgs,
+  vMediaItem,
+  vPlatformSpecificData,
+  type MediaItem,
+  type PlatformSpecificData,
   vPostEventArgs,
   type AccountEventArgs,
   type PostEventArgs,
@@ -361,6 +365,10 @@ export class Zernio {
       scheduledFor?: number;
       title?: string;
       mediaUrls?: string[];
+      /** Replaces `mediaUrls` and can carry each item's cover. */
+      mediaItems?: MediaItem[];
+      /** Sent on each platform entry, keyed by platform. */
+      platformSpecificData?: PlatformSpecificData;
       timezone?: string;
       idempotencyKey?: string;
       userId?: string;
@@ -383,6 +391,12 @@ export class Zernio {
           : {}),
         ...(args.title !== undefined ? { title: args.title } : {}),
         ...(args.mediaUrls !== undefined ? { mediaUrls: args.mediaUrls } : {}),
+        ...(args.mediaItems !== undefined
+          ? { mediaItems: args.mediaItems }
+          : {}),
+        ...(args.platformSpecificData !== undefined
+          ? { platformSpecificData: args.platformSpecificData }
+          : {}),
         ...(args.timezone !== undefined ? { timezone: args.timezone } : {}),
         ...(args.idempotencyKey !== undefined
           ? { idempotencyKey: args.idempotencyKey }
@@ -565,6 +579,8 @@ export class Zernio {
           scheduledFor: v.optional(v.number()),
           title: v.optional(v.string()),
           mediaUrls: v.optional(v.array(v.string())),
+          mediaItems: v.optional(v.array(vMediaItem)),
+          platformSpecificData: v.optional(vPlatformSpecificData),
           timezone: v.optional(v.string()),
           idempotencyKey: v.optional(v.string()),
         },

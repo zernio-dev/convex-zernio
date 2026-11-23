@@ -203,12 +203,33 @@ export function fnv1a64hex(input: string): string {
   return hash.toString(16).padStart(16, "0");
 }
 
+/**
+ * One media item with its optional cover. `thumbnail` is the cover on Facebook,
+ * YouTube and LinkedIn videos; `instagramThumbnail` the Instagram Reel cover.
+ */
+export const vMediaItem = v.object({
+  url: v.string(),
+  thumbnail: v.optional(v.string()),
+  instagramThumbnail: v.optional(v.string()),
+});
+
+/** Zernio `platformSpecificData`, keyed by platform (e.g. `tiktok`, `youtube`). */
+export const vPlatformSpecificData = v.record(
+  v.string(),
+  v.record(v.string(), v.any()),
+);
+
+export type MediaItem = Infer<typeof vMediaItem>;
+export type PlatformSpecificData = Infer<typeof vPlatformSpecificData>;
+
 export function deriveIdempotencyKey(args: {
   zernioProfileId: string;
   accountIds: string[];
   content: string;
   title?: string;
   mediaUrls?: string[];
+  mediaItems?: MediaItem[];
+  platformSpecificData?: PlatformSpecificData;
   scheduledFor?: number;
   testMode: boolean;
 }): string {
@@ -220,6 +241,11 @@ export function deriveIdempotencyKey(args: {
     (args.mediaUrls ?? []).join(","),
     args.scheduledFor ?? "now",
     args.testMode,
+    // Only when set, so keys derived before these fields existed stay the same.
+    ...(args.mediaItems !== undefined ? [JSON.stringify(args.mediaItems)] : []),
+    ...(args.platformSpecificData !== undefined
+      ? [JSON.stringify(args.platformSpecificData)]
+      : []),
   ].join("|");
   return `zc_${fnv1a64hex(parts)}`;
 }

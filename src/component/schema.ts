@@ -1,6 +1,12 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { vPlatformTarget, vPostStatus, vRuntimeOptions } from "./shared.js";
+import {
+  vMediaItem,
+  vPlatformSpecificData,
+  vPlatformTarget,
+  vPostStatus,
+  vRuntimeOptions,
+} from "./shared.js";
 
 export default defineSchema({
   profiles: defineTable({
@@ -33,6 +39,8 @@ export default defineSchema({
     content: v.string(),
     title: v.optional(v.string()),
     mediaUrls: v.optional(v.array(v.string())),
+    mediaItems: v.optional(v.array(vMediaItem)),
+    platformSpecificData: v.optional(vPlatformSpecificData),
     scheduledFor: v.optional(v.number()),
     timezone: v.optional(v.string()),
     accountIds: v.array(v.string()),

@@ -271,13 +271,36 @@ const { postId, status, duplicate } = await zernio.schedulePost(ctx, {
 
 - `scheduledFor` is a **number** (ms since epoch). Omitting it means publish immediately (or
   create a draft, in test mode).
+- **Covers and platform settings.** `mediaItems` replaces `mediaUrls` when you need more than a
+  URL per item, such as a video cover. `platformSpecificData` is keyed by platform, and each
+  platform entry in the request gets only its own object. Both are stored with the post, so every
+  retry sends them too.
+
+  ```ts
+  await zernio.schedulePost(ctx, {
+    accountIds: [tiktokAccountId],
+    content: "Shipping notes for this week.",
+    mediaItems: [
+      {
+        url: "https://cdn.example.com/clip.mp4",
+        thumbnail: "https://cdn.example.com/cover.jpg",          // Facebook, YouTube, LinkedIn
+        instagramThumbnail: "https://cdn.example.com/cover.jpg", // Instagram Reels
+      },
+    ],
+    platformSpecificData: {
+      tiktok: { videoCoverImageUrl: "https://cdn.example.com/cover.jpg" },
+      youtube: { title: "Weekly notes" },
+    },
+  });
+  ```
 - Every `accountId` must already exist in the component's table. If one does not, the call
   throws and tells you to run `syncAccounts` first. The component needs each account's platform
   because Zernio's create-post body takes `platforms: [{ platform, accountId }]`, never a bare
   list of account ids.
 - **Idempotency.** `schedulePost` is safe to retry.
   - With no `idempotencyKey`, the component derives one from the profile, accounts, content,
-    title, media, schedule and test mode. A repeat returns the original post with
+    title, media (including `mediaItems` and `platformSpecificData` when set), schedule and test
+    mode. A repeat returns the original post with
     `duplicate: true` **while that post is still unresolved** (`pending`, `submitting`,
     `scheduled`) or was created in the last 10 minutes. A derived key means "this call is a
     retry", not "this content was ever posted": once the post has settled and that window has
@@ -662,8 +685,9 @@ Also worth knowing:
   workpool's tables for the lifetime of that job. It is never written to any of the component's
   own tables.
 - Media is `mediaUrls: string[]`, mapped to Zernio's `mediaItems` with the type auto-detected
-  from the extension. Richer media options (thumbnails, per-platform overrides) go through
-  `request()`.
+  from the extension, or `mediaItems` when an item needs a cover (`thumbnail`,
+  `instagramThumbnail`). `platformSpecificData` covers per-platform settings. Anything else
+  (`customMedia`, other request fields) goes through `request()`.
 
 ## API reference
 
@@ -690,7 +714,7 @@ new Zernio(components.zernio, options?)
 | `connectAccountUrl(ctx, { platform, redirectUrl?, userId? })` | action | `{ authUrl, state, profileId }` |
 | `syncAccounts(ctx, { userId? })` | action | `ZernioAccount[]` |
 | `listAccounts(ctx, { userId?, platform? })` | query | `ZernioAccount[]` |
-| `schedulePost(ctx, { accountIds, content, scheduledFor?, title?, mediaUrls?, timezone?, idempotencyKey?, userId? })` | mutation | `{ postId, status, duplicate }` |
+| `schedulePost(ctx, { accountIds, content, scheduledFor?, title?, mediaUrls?, mediaItems?, platformSpecificData?, timezone?, idempotencyKey?, userId? })` | mutation | `{ postId, status, duplicate }` |
 | `status(ctx, postId, { userId? })` | query | `ZernioPostStatusSummary \| null` |
 | `getPost(ctx, postId, { userId? })` | query | `ZernioPost \| null` |
 | `listPosts(ctx, { userId?, status?, limit? })` | query | `ZernioPost[]` |

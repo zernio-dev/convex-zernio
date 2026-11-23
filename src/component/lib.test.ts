@@ -209,6 +209,61 @@ describe("submitPost", () => {
     expect(post?.platforms[0].publishedUrl).toBe("https://x.com/acme/1");
   });
 
+  test("sends media items and platform data on every submission", async () => {
+    const t = initConvexTest();
+    await seedAccounts(t);
+    const { postId } = await schedule(t, {
+      mediaUrls: ["https://cdn.example.com/ignored.mp4"],
+      mediaItems: [
+        {
+          url: "https://cdn.example.com/clip.mp4",
+          thumbnail: "https://cdn.example.com/cover.jpg",
+        },
+      ],
+      platformSpecificData: {
+        twitter: { replySettings: "following" },
+        tiktok: { videoCoverImageUrl: "https://cdn.example.com/cover.jpg" },
+      },
+    });
+    const fetchMock = stubFetch(
+      jsonResponse(201, { post: { _id: "zpost_media", status: "draft" } }),
+    );
+
+    await t.action(internal.lib.submitPost, { postId, options, apiKey });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(String(init?.body));
+    // mediaItems replace mediaUrls, and each platform entry gets only its own data.
+    expect(body.mediaItems).toEqual([
+      {
+        url: "https://cdn.example.com/clip.mp4",
+        thumbnail: "https://cdn.example.com/cover.jpg",
+      },
+    ]);
+    expect(body.platforms).toEqual([
+      {
+        platform: "twitter",
+        accountId: "acc_x",
+        platformSpecificData: { replySettings: "following" },
+      },
+    ]);
+  });
+
+  test("treats a different cover as a different post", async () => {
+    const t = initConvexTest();
+    await seedAccounts(t);
+    const media = (thumbnail: string) => ({
+      mediaItems: [{ url: "https://cdn.example.com/clip.mp4", thumbnail }],
+    });
+    const first = await schedule(t, media("https://cdn.example.com/a.jpg"));
+    const again = await schedule(t, media("https://cdn.example.com/a.jpg"));
+    const other = await schedule(t, media("https://cdn.example.com/b.jpg"));
+
+    expect(again.duplicate).toBe(true);
+    expect(other.duplicate).toBe(false);
+    expect(other.postId).not.toBe(first.postId);
+  });
+
   test("keeps a 202 in flight for the webhook to finalize", async () => {
     const t = initConvexTest();
     await seedAccounts(t);

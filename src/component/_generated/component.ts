@@ -53,6 +53,12 @@ type PostDoc = {
   idempotencyKey: string;
   lastEventAt?: number;
   mediaUrls?: Array<string>;
+  mediaItems?: Array<{
+    url: string;
+    thumbnail?: string;
+    instagramThumbnail?: string;
+  }>;
+  platformSpecificData?: Record<string, Record<string, any>>;
   platforms: Array<PlatformTarget>;
   scheduledFor?: number;
   status: PostStatus;
@@ -211,6 +217,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           idempotencyKey?: string;
           maxParallelism?: number;
           mediaUrls?: Array<string>;
+          mediaItems?: Array<{
+            url: string;
+            thumbnail?: string;
+            instagramThumbnail?: string;
+          }>;
+          platformSpecificData?: Record<string, Record<string, any>>;
           options: RuntimeOptions;
           scheduledFor?: number;
           timezone?: string;

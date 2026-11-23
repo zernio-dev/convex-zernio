@@ -79,6 +79,13 @@ export async function schedule(
     scheduledFor?: number;
     idempotencyKey?: string;
     userId?: string;
+    mediaUrls?: string[];
+    mediaItems?: {
+      url: string;
+      thumbnail?: string;
+      instagramThumbnail?: string;
+    }[];
+    platformSpecificData?: Record<string, Record<string, unknown>>;
   } = {},
 ) {
   const { content, testMode, accountIds, ...rest } = overrides;

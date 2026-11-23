@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- `schedulePost` takes optional `mediaItems` (each `{ url, thumbnail?, instagramThumbnail? }`,
+  replacing `mediaUrls`) and `platformSpecificData` (keyed by platform, sent on the matching
+  platform entry). Video covers and platform settings such as a YouTube title or TikTok cover
+  image no longer need `request()`, so they keep the workpool retries, rate limit and
+  idempotency. Posts without them are sent and keyed exactly as before.
+
 ## 0.1.2
 
 - Add the Convex components directory badge to the README.

@@ -1,5 +1,11 @@
 import { ConvexError } from "convex/values";
-import { isRecord, readString, type PlatformTarget } from "./shared.js";
+import {
+  isRecord,
+  readString,
+  type MediaItem,
+  type PlatformSpecificData,
+  type PlatformTarget,
+} from "./shared.js";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -112,6 +118,8 @@ export function buildCreatePostBody(args: {
   content: string;
   title?: string;
   mediaUrls?: string[];
+  mediaItems?: MediaItem[];
+  platformSpecificData?: PlatformSpecificData;
   timezone?: string;
   scheduledFor?: number;
   platforms: PlatformTarget[];
@@ -122,12 +130,18 @@ export function buildCreatePostBody(args: {
     platforms: args.platforms.map((target) => ({
       platform: target.platform,
       accountId: target.accountId,
+      ...(args.platformSpecificData?.[target.platform] !== undefined
+        ? { platformSpecificData: args.platformSpecificData[target.platform] }
+        : {}),
     })),
   };
   if (args.title !== undefined) {
     body.title = args.title;
   }
-  if (args.mediaUrls !== undefined && args.mediaUrls.length > 0) {
+  if (args.mediaItems !== undefined && args.mediaItems.length > 0) {
+    // Items carry their own cover fields, so they replace mediaUrls.
+    body.mediaItems = args.mediaItems;
+  } else if (args.mediaUrls !== undefined && args.mediaUrls.length > 0) {
     // Zernio auto-detects the media type from the URL extension.
     body.mediaItems = args.mediaUrls.map((url) => ({ url }));
   }
